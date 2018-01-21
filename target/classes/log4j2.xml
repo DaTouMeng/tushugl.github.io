@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- status：log4j本身的日志信息记录基本，默认：OFF -->
+<Configuration status="off">
+
+	<!-- 定义Properties -->
+	<Properties>
+		<Property name="log_pattern">%d{yyyy-MM-dd HH:mm:ss} %5p [%l] - %m%n</Property>
+		<Property name="log_file_name">target/cs-cashier/running.log</Property>
+		<Property name="log_error_file_name">target/cs-cashier/error.log</Property>
+		<Property name="log_rolling_pattern">target/cs-cashier/cs-cashier-%d{yyyy-MM-dd}-history-%i.log</Property>
+		<Property name="log_cutting_size">10MB</Property>
+		<Property name="log_cutting_time">1</Property> <!-- 以日志的命名精度来确定单位 -->
+		<Property name="log_cutting_time_modulate">true</Property> <!-- 是否对封存时间进行调制，0点为边界 -->
+		<Property name="log_default_level">debug</Property>
+	</Properties>
+
+	<!-- 定义Appenders -->
+	<Appenders>
+		<!-- 控制台打印日志信息，基于root级别 -->
+		<Console name="STDOUT" target="SYSTEM_OUT">
+			<PatternLayout pattern="${log_pattern}" />
+		</Console>
+
+		<!-- Error以上级别单独打印 -->
+		<File name="ERRORFILE" fileName="${log_error_file_name}">
+			<ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY" />
+			<PatternLayout pattern="${log_pattern}" />
+		</File>
+
+		<!-- 日志文件切割存储 ，基于root级别，时间和大小切割共存 -->
+		<RollingFile name="ROLLINGFILE" fileName="${log_file_name}" filePattern="${log_rolling_pattern}">
+			<PatternLayout pattern="${log_pattern}" />
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="${log_cutting_time}" modulate="${log_cutting_time_modulate}" />
+				<SizeBasedTriggeringPolicy size="${log_cutting_size}" />
+			</Policies>
+		</RollingFile>
+
+	</Appenders>
+
+	<!-- 定义Loggers -->
+	<Loggers>
+		<Root level="${log_default_level}">
+			<AppenderRef ref="STDOUT" />
+			<AppenderRef ref="ERRORFILE" />
+			<AppenderRef ref="ROLLINGFILE" />
+		</Root>
+
+		<!-- 过滤第三方包日志信息，防止刷屏 -->
+		<logger name="org.apache.commons" level="warn" />
+		<logger name="com.zaxxer.hikari" level="warn" />
+	</Loggers>
+
+</Configuration>
